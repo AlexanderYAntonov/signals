@@ -43,8 +43,6 @@ import {
   NumberSymbol,
   PLATFORM_BROWSER_ID,
   PLATFORM_SERVER_ID,
-  PLATFORM_WORKER_APP_ID,
-  PLATFORM_WORKER_UI_ID,
   PRECONNECT_CHECK_BLOCKLIST,
   PathLocationStrategy,
   PercentPipe,
@@ -87,8 +85,6 @@ import {
   getNumberOfCurrencyDigits,
   isPlatformBrowser,
   isPlatformServer,
-  isPlatformWorkerApp,
-  isPlatformWorkerUi,
   normalizeQueryParams,
   parseCookieValue,
   provideCloudflareLoader,
@@ -98,10 +94,10 @@ import {
   provideNetlifyLoader,
   registerLocaleData,
   setRootDomAdapter
-} from "./chunk-VGC5YQ7Y.js";
+} from "./chunk-6J5OJ5M4.js";
 import {
   IMAGE_CONFIG
-} from "./chunk-RA33G2A7.js";
+} from "./chunk-KR6GKBAP.js";
 export {
   APP_BASE_HREF,
   AsyncPipe,
@@ -185,8 +181,6 @@ export {
   getNumberOfCurrencyDigits,
   isPlatformBrowser,
   isPlatformServer,
-  isPlatformWorkerApp,
-  isPlatformWorkerUi,
   provideCloudflareLoader,
   provideCloudinaryLoader,
   provideImageKitLoader,
@@ -197,8 +191,6 @@ export {
   NullViewportScroller as ɵNullViewportScroller,
   PLATFORM_BROWSER_ID as ɵPLATFORM_BROWSER_ID,
   PLATFORM_SERVER_ID as ɵPLATFORM_SERVER_ID,
-  PLATFORM_WORKER_APP_ID as ɵPLATFORM_WORKER_APP_ID,
-  PLATFORM_WORKER_UI_ID as ɵPLATFORM_WORKER_UI_ID,
   PlatformNavigation as ɵPlatformNavigation,
   getDOM as ɵgetDOM,
   normalizeQueryParams as ɵnormalizeQueryParams,

@@ -8,7 +8,7 @@ import {
   isPlatformServer,
   parseCookieValue,
   setRootDomAdapter
-} from "./chunk-VGC5YQ7Y.js";
+} from "./chunk-6J5OJ5M4.js";
 import {
   APP_BOOTSTRAP_LISTENER,
   APP_ID,
@@ -19,6 +19,7 @@ import {
   ENVIRONMENT_INITIALIZER,
   EnvironmentInjector,
   ErrorHandler,
+  GLOBAL_EVENT_DELEGATION,
   INJECTOR_SCOPE,
   Inject,
   Injectable,
@@ -80,11 +81,13 @@ import {
   unwrapSafeValue,
   whenStable,
   withDomHydration,
+  withEventReplay,
+  withI18nSupport,
   ɵɵdefineInjectable,
   ɵɵdefineInjector,
   ɵɵdefineNgModule,
   ɵɵinject
-} from "./chunk-RA33G2A7.js";
+} from "./chunk-KR6GKBAP.js";
 
 // node_modules/@angular/common/fesm2022/http.mjs
 var HttpHandler = class {
@@ -785,7 +788,7 @@ var HttpResponseBase = class {
    * The single parameter accepted is an initialization hash. Any properties
    * of the response passed there will override the default values.
    */
-  constructor(init, defaultStatus = HttpStatusCode.Ok, defaultStatusText = "OK") {
+  constructor(init, defaultStatus = 200, defaultStatusText = "OK") {
     this.headers = init.headers || new HttpHeaders();
     this.status = init.status !== void 0 ? init.status : defaultStatus;
     this.statusText = init.statusText || defaultStatusText;
@@ -846,6 +849,8 @@ var HttpErrorResponse = class extends HttpResponseBase {
     this.error = init.error || null;
   }
 };
+var HTTP_STATUS_CODE_OK = 200;
+var HTTP_STATUS_CODE_NO_CONTENT = 204;
 var HttpStatusCode;
 (function(HttpStatusCode2) {
   HttpStatusCode2[HttpStatusCode2["Continue"] = 100] = "Continue";
@@ -1243,7 +1248,7 @@ var _FetchBackend = class _FetchBackend {
         }
       }
       if (status === 0) {
-        status = body ? HttpStatusCode.Ok : 0;
+        status = body ? HTTP_STATUS_CODE_OK : 0;
       }
       const ok = status >= 200 && status < 300;
       if (ok) {
@@ -1343,7 +1348,10 @@ function chainedInterceptorFn(chainTailFn, interceptorFn, injector) {
 var HTTP_INTERCEPTORS = new InjectionToken(ngDevMode ? "HTTP_INTERCEPTORS" : "");
 var HTTP_INTERCEPTOR_FNS = new InjectionToken(ngDevMode ? "HTTP_INTERCEPTOR_FNS" : "");
 var HTTP_ROOT_INTERCEPTOR_FNS = new InjectionToken(ngDevMode ? "HTTP_ROOT_INTERCEPTOR_FNS" : "");
-var PRIMARY_HTTP_BACKEND = new InjectionToken(ngDevMode ? "PRIMARY_HTTP_BACKEND" : "");
+var REQUESTS_CONTRIBUTE_TO_STABILITY = new InjectionToken(ngDevMode ? "REQUESTS_CONTRIBUTE_TO_STABILITY" : "", {
+  providedIn: "root",
+  factory: () => true
+});
 function legacyInterceptorFnFactory() {
   let chain = null;
   return (req, handler) => {
@@ -1354,8 +1362,13 @@ function legacyInterceptorFnFactory() {
       chain = interceptors.reduceRight(adaptLegacyInterceptorToChain, interceptorChainEndFn);
     }
     const pendingTasks = inject(PendingTasks);
-    const taskId = pendingTasks.add();
-    return chain(req, handler).pipe(finalize(() => pendingTasks.remove(taskId)));
+    const contributeToStability = inject(REQUESTS_CONTRIBUTE_TO_STABILITY);
+    if (contributeToStability) {
+      const taskId = pendingTasks.add();
+      return chain(req, handler).pipe(finalize(() => pendingTasks.remove(taskId)));
+    } else {
+      return chain(req, handler);
+    }
   };
 }
 var fetchBackendWarningDisplayed = false;
@@ -1366,10 +1379,7 @@ var _HttpInterceptorHandler = class _HttpInterceptorHandler extends HttpHandler 
     this.injector = injector;
     this.chain = null;
     this.pendingTasks = inject(PendingTasks);
-    const primaryHttpBackend = inject(PRIMARY_HTTP_BACKEND, {
-      optional: true
-    });
-    this.backend = primaryHttpBackend ?? backend;
+    this.contributeToStability = inject(REQUESTS_CONTRIBUTE_TO_STABILITY);
     if ((typeof ngDevMode === "undefined" || ngDevMode) && !fetchBackendWarningDisplayed) {
       const isServer = isPlatformServer(injector.get(PLATFORM_ID));
       if (isServer && !(this.backend instanceof FetchBackend)) {
@@ -1383,8 +1393,12 @@ var _HttpInterceptorHandler = class _HttpInterceptorHandler extends HttpHandler 
       const dedupedInterceptorFns = Array.from(/* @__PURE__ */ new Set([...this.injector.get(HTTP_INTERCEPTOR_FNS), ...this.injector.get(HTTP_ROOT_INTERCEPTOR_FNS, [])]));
       this.chain = dedupedInterceptorFns.reduceRight((nextSequencedFn, interceptorFn) => chainedInterceptorFn(nextSequencedFn, interceptorFn, this.injector), interceptorChainEndFn);
     }
-    const taskId = this.pendingTasks.add();
-    return this.chain(initialRequest, (downstreamRequest) => this.backend.handle(downstreamRequest)).pipe(finalize(() => this.pendingTasks.remove(taskId)));
+    if (this.contributeToStability) {
+      const taskId = this.pendingTasks.add();
+      return this.chain(initialRequest, (downstreamRequest) => this.backend.handle(downstreamRequest)).pipe(finalize(() => this.pendingTasks.remove(taskId)));
+    } else {
+      return this.chain(initialRequest, (downstreamRequest) => this.backend.handle(downstreamRequest));
+    }
   }
 };
 _HttpInterceptorHandler.ɵfac = function HttpInterceptorHandler_Factory(t) {
@@ -1477,7 +1491,7 @@ var _JsonpClientBackend = class _JsonpClientBackend {
           }
           observer.next(new HttpResponse({
             body,
-            status: HttpStatusCode.Ok,
+            status: HTTP_STATUS_CODE_OK,
             statusText: "OK",
             url
           }));
@@ -1640,11 +1654,11 @@ var _HttpXhrBackend = class _HttpXhrBackend {
             url
           } = partialFromXhr();
           let body = null;
-          if (status !== HttpStatusCode.NoContent) {
+          if (status !== HTTP_STATUS_CODE_NO_CONTENT) {
             body = typeof xhr.response === "undefined" ? xhr.responseText : xhr.response;
           }
           if (status === 0) {
-            status = !!body ? HttpStatusCode.Ok : 0;
+            status = !!body ? HTTP_STATUS_CODE_OK : 0;
           }
           let ok = status >= 200 && status < 300;
           if (req.responseType === "json" && typeof body === "string") {
@@ -1902,7 +1916,11 @@ function provideHttpClient(...features) {
     useExisting: HttpInterceptorHandler
   }, {
     provide: HttpBackend,
-    useExisting: HttpXhrBackend
+    useFactory: () => {
+      return inject(FetchBackend, {
+        optional: true
+      }) ?? inject(HttpXhrBackend);
+    }
   }, {
     provide: HTTP_INTERCEPTOR_FNS,
     useValue: xsrfInterceptorFn,
@@ -2051,7 +2069,7 @@ var HttpClientModule = _HttpClientModule;
     type: NgModule,
     args: [{
       /**
-       * Configures the [dependency injector](guide/glossary#injector) where it is imported
+       * Configures the dependency injector where it is imported
        * with supporting services for HTTP communications.
        */
       providers: [provideHttpClient(withInterceptorsFromDi())]
@@ -2078,11 +2096,12 @@ var HttpClientJsonpModule = _HttpClientJsonpModule;
     }]
   }], null, null);
 })();
+var HTTP_TRANSFER_CACHE_ORIGIN_MAP = new InjectionToken(ngDevMode ? "HTTP_TRANSFER_CACHE_ORIGIN_MAP" : "");
 var BODY = "b";
 var HEADERS = "h";
 var STATUS = "s";
 var STATUS_TEXT = "st";
-var URL2 = "u";
+var REQ_URL = "u";
 var RESPONSE_TYPE = "rt";
 var CACHE_OPTIONS = new InjectionToken(ngDevMode ? "HTTP_TRANSFER_STATE_CACHE_OPTIONS" : "");
 var ALLOWED_METHODS = ["GET", "HEAD"];
@@ -2096,13 +2115,21 @@ function transferCacheInterceptorFn(req, next) {
     transferCache: requestOptions,
     method: requestMethod
   } = req;
-  if (!isCacheActive || // POST requests are allowed either globally or at request level
-  requestMethod === "POST" && !globalOptions.includePostRequests && !requestOptions || requestMethod !== "POST" && !ALLOWED_METHODS.includes(requestMethod) || requestOptions === false || //
-  globalOptions.filter?.(req) === false) {
+  if (!isCacheActive || requestOptions === false || // POST requests are allowed either globally or at request level
+  requestMethod === "POST" && !globalOptions.includePostRequests && !requestOptions || requestMethod !== "POST" && !ALLOWED_METHODS.includes(requestMethod) || // Do not cache request that require authorization when includeRequestsWithAuthHeaders is falsey
+  !globalOptions.includeRequestsWithAuthHeaders && hasAuthHeaders(req) || globalOptions.filter?.(req) === false) {
     return next(req);
   }
   const transferState = inject(TransferState);
-  const storeKey = makeCacheKey(req);
+  const originMap = inject(HTTP_TRANSFER_CACHE_ORIGIN_MAP, {
+    optional: true
+  });
+  const isServer = isPlatformServer(inject(PLATFORM_ID));
+  if (originMap && !isServer) {
+    throw new RuntimeError(2803, ngDevMode && "Angular detected that the `HTTP_TRANSFER_CACHE_ORIGIN_MAP` token is configured and present in the client side code. Please ensure that this token is only provided in the server code of the application.");
+  }
+  const requestUrl = isServer && originMap ? mapRequestOriginUrl(req.url, originMap) : req.url;
+  const storeKey = makeCacheKey(req, requestUrl);
   const response = transferState.get(storeKey, null);
   let headersToInclude = globalOptions.includeHeaders;
   if (typeof requestOptions === "object" && requestOptions.includeHeaders) {
@@ -2115,7 +2142,7 @@ function transferCacheInterceptorFn(req, next) {
       [HEADERS]: httpHeaders,
       [STATUS]: status,
       [STATUS_TEXT]: statusText,
-      [URL2]: url
+      [REQ_URL]: url
     } = response;
     let body = undecodedBody;
     switch (responseType) {
@@ -2138,7 +2165,6 @@ function transferCacheInterceptorFn(req, next) {
       url
     }));
   }
-  const isServer = isPlatformServer(inject(PLATFORM_ID));
   return next(req).pipe(tap((event) => {
     if (event instanceof HttpResponse && isServer) {
       transferState.set(storeKey, {
@@ -2146,11 +2172,14 @@ function transferCacheInterceptorFn(req, next) {
         [HEADERS]: getFilteredHeaders(event.headers, headersToInclude),
         [STATUS]: event.status,
         [STATUS_TEXT]: event.statusText,
-        [URL2]: event.url || "",
+        [REQ_URL]: requestUrl,
         [RESPONSE_TYPE]: req.responseType
       });
     }
   }));
+}
+function hasAuthHeaders(req) {
+  return req.headers.has("authorization") || req.headers.has("proxy-authorization");
 }
 function getFilteredHeaders(headers, includeHeaders) {
   if (!includeHeaders) {
@@ -2168,12 +2197,11 @@ function getFilteredHeaders(headers, includeHeaders) {
 function sortAndConcatParams(params) {
   return [...params.keys()].sort().map((k) => `${k}=${params.getAll(k)}`).join("&");
 }
-function makeCacheKey(request) {
+function makeCacheKey(request, mappedRequestUrl) {
   const {
     params,
     method,
-    responseType,
-    url
+    responseType
   } = request;
   const encodedParams = sortAndConcatParams(params);
   let serializedBody = request.serializeBody();
@@ -2182,7 +2210,7 @@ function makeCacheKey(request) {
   } else if (typeof serializedBody !== "string") {
     serializedBody = "";
   }
-  const key = [method, responseType, url, serializedBody, encodedParams].join("|");
+  const key = [method, responseType, mappedRequestUrl, serializedBody, encodedParams].join("|");
   const hash = generateHash(key);
   return makeStateKey(hash);
 }
@@ -2242,6 +2270,22 @@ function appendMissingHeadersDetection(url, headers, headersToInclude) {
       };
     }
   });
+}
+function mapRequestOriginUrl(url, originMap) {
+  const origin = new URL(url, "resolve://").origin;
+  const mappedOrigin = originMap[origin];
+  if (!mappedOrigin) {
+    return url;
+  }
+  if (typeof ngDevMode === "undefined" || ngDevMode) {
+    verifyMappedOrigin(mappedOrigin);
+  }
+  return url.replace(origin, mappedOrigin);
+}
+function verifyMappedOrigin(url) {
+  if (new URL(url, "resolve://").pathname !== "/") {
+    throw new RuntimeError(2804, `Angular detected a URL with a path segment in the value provided for the \`HTTP_TRANSFER_CACHE_ORIGIN_MAP\` token: ${url}. The map should only contain origins without any other segments.`);
+  }
 }
 
 // node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs
@@ -2632,7 +2676,7 @@ var NAMESPACE_URIS = {
   "xlink": "http://www.w3.org/1999/xlink",
   "xml": "http://www.w3.org/XML/1998/namespace",
   "xmlns": "http://www.w3.org/2000/xmlns/",
-  "math": "http://www.w3.org/1998/MathML/"
+  "math": "http://www.w3.org/1998/Math/MathML"
 };
 var COMPONENT_REGEX = /%COMP%/g;
 var COMPONENT_VARIABLE = "%COMP%";
@@ -3012,6 +3056,42 @@ var DomEventsPlugin = _DomEventsPlugin;
     }]
   }], null);
 })();
+var _EventDelegationPlugin = class _EventDelegationPlugin extends EventManagerPlugin {
+  constructor(doc) {
+    super(doc);
+    this.delegate = inject(GLOBAL_EVENT_DELEGATION, {
+      optional: true
+    });
+  }
+  supports(eventName) {
+    return this.delegate ? this.delegate.supports(eventName) : false;
+  }
+  addEventListener(element, eventName, handler) {
+    return this.delegate.addEventListener(element, eventName, handler);
+  }
+  removeEventListener(element, eventName, callback) {
+    return this.delegate.removeEventListener(element, eventName, callback);
+  }
+};
+_EventDelegationPlugin.ɵfac = function EventDelegationPlugin_Factory(t) {
+  return new (t || _EventDelegationPlugin)(ɵɵinject(DOCUMENT));
+};
+_EventDelegationPlugin.ɵprov = ɵɵdefineInjectable({
+  token: _EventDelegationPlugin,
+  factory: _EventDelegationPlugin.ɵfac
+});
+var EventDelegationPlugin = _EventDelegationPlugin;
+(() => {
+  (typeof ngDevMode === "undefined" || ngDevMode) && setClassMetadata(EventDelegationPlugin, [{
+    type: Injectable
+  }], () => [{
+    type: void 0,
+    decorators: [{
+      type: Inject,
+      args: [DOCUMENT]
+    }]
+  }], null);
+})();
 var MODIFIER_KEYS = ["alt", "control", "meta", "shift"];
 var _keyMap = {
   "\b": "Backspace",
@@ -3249,6 +3329,10 @@ var BROWSER_MODULE_PROVIDERS = [{
   useClass: KeyEventsPlugin,
   multi: true,
   deps: [DOCUMENT]
+}, {
+  provide: EVENT_MANAGER_PLUGINS,
+  useClass: EventDelegationPlugin,
+  multi: true
 }, DomRendererFactory2, SharedStylesHost, EventManager, {
   provide: RendererFactory2,
   useExisting: DomRendererFactory2
@@ -3969,6 +4053,8 @@ var HydrationFeatureKind;
 (function(HydrationFeatureKind2) {
   HydrationFeatureKind2[HydrationFeatureKind2["NoHttpTransferCache"] = 0] = "NoHttpTransferCache";
   HydrationFeatureKind2[HydrationFeatureKind2["HttpTransferCacheOptions"] = 1] = "HttpTransferCacheOptions";
+  HydrationFeatureKind2[HydrationFeatureKind2["I18nSupport"] = 2] = "I18nSupport";
+  HydrationFeatureKind2[HydrationFeatureKind2["EventReplay"] = 3] = "EventReplay";
 })(HydrationFeatureKind || (HydrationFeatureKind = {}));
 function hydrationFeature(ɵkind, ɵproviders = [], ɵoptions = {}) {
   return {
@@ -3981,6 +4067,12 @@ function withNoHttpTransferCache() {
 }
 function withHttpTransferCacheOptions(options) {
   return hydrationFeature(HydrationFeatureKind.HttpTransferCacheOptions, withHttpTransferCache(options));
+}
+function withI18nSupport2() {
+  return hydrationFeature(HydrationFeatureKind.I18nSupport, withI18nSupport());
+}
+function withEventReplay2() {
+  return hydrationFeature(HydrationFeatureKind.EventReplay, withEventReplay());
 }
 function provideZoneJsCompatibilityDetector() {
   return [{
@@ -4014,9 +4106,7 @@ function provideClientHydration(...features) {
   }
   return makeEnvironmentProviders([typeof ngDevMode !== "undefined" && ngDevMode ? provideZoneJsCompatibilityDetector() : [], withDomHydration(), featuresKind.has(HydrationFeatureKind.NoHttpTransferCache) || hasHttpTransferCacheOptions ? [] : withHttpTransferCache({}), providers]);
 }
-var VERSION = new Version("17.3.11");
-var makeStateKey2 = makeStateKey;
-var TransferState2 = TransferState;
+var VERSION = new Version("18.0.6");
 
 export {
   BrowserDomAdapter,
@@ -4051,25 +4141,25 @@ export {
   HydrationFeatureKind,
   withNoHttpTransferCache,
   withHttpTransferCacheOptions,
+  withI18nSupport2 as withI18nSupport,
+  withEventReplay2 as withEventReplay,
   provideClientHydration,
-  VERSION,
-  makeStateKey2 as makeStateKey,
-  TransferState2 as TransferState
+  VERSION
 };
 /*! Bundled license information:
 
 @angular/common/fesm2022/http.mjs:
   (**
-   * @license Angular v17.3.11
+   * @license Angular v18.0.6
    * (c) 2010-2024 Google LLC. https://angular.io/
    * License: MIT
    *)
 
 @angular/platform-browser/fesm2022/platform-browser.mjs:
   (**
-   * @license Angular v17.3.11
+   * @license Angular v18.0.6
    * (c) 2010-2024 Google LLC. https://angular.io/
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-U7PAWJPZ.js.map
+//# sourceMappingURL=chunk-Y4XLPACD.js.map

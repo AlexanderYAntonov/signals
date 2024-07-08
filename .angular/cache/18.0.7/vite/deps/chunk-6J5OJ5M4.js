@@ -13,7 +13,6 @@ import {
   InjectionToken,
   Injector,
   Input,
-  InputFlags,
   IterableDiffers,
   KeyValueDiffers,
   LOCALE_ID,
@@ -59,7 +58,7 @@ import {
   ɵɵinject,
   ɵɵinjectAttribute,
   ɵɵstyleProp
-} from "./chunk-RA33G2A7.js";
+} from "./chunk-KR6GKBAP.js";
 
 // node_modules/@angular/common/fesm2022/common.mjs
 var _DOM = null;
@@ -2093,7 +2092,7 @@ _NgClass.ɵdir = ɵɵdefineDirective({
   type: _NgClass,
   selectors: [["", "ngClass", ""]],
   inputs: {
-    klass: [InputFlags.None, "class", "klass"],
+    klass: [0, "class", "klass"],
     ngClass: "ngClass"
   },
   standalone: true
@@ -2261,7 +2260,7 @@ var NgForOfContext = class {
 var _NgForOf = class _NgForOf {
   /**
    * The value of the iterable expression, which can be used as a
-   * [template input variable](guide/structural-directives#shorthand).
+   * [template input variable](guide/directives/structural-directives#shorthand).
    */
   set ngForOf(ngForOf) {
     this._ngForOf = ngForOf;
@@ -2304,7 +2303,7 @@ var _NgForOf = class _NgForOf {
   }
   /**
    * A reference to the template that is stamped out for each item in the iterable.
-   * @see [template reference variable](guide/template-reference-variables)
+   * @see [template reference variable](guide/templates/reference-variables)
    */
   set ngForTemplate(value) {
     if (value) {
@@ -2534,7 +2533,6 @@ function assertTemplate(property, templateRef) {
     throw new Error(`${property} must be a TemplateRef, but received '${stringify(templateRef)}'.`);
   }
 }
-var NG_SWITCH_USE_STRICT_EQUALS = true;
 var SwitchView = class {
   constructor(_viewContainerRef, _templateRef) {
     this._viewContainerRef = _viewContainerRef;
@@ -2581,10 +2579,7 @@ var _NgSwitch = class _NgSwitch {
   }
   /** @internal */
   _matchCase(value) {
-    const matched = NG_SWITCH_USE_STRICT_EQUALS ? value === this._ngSwitch : value == this._ngSwitch;
-    if ((typeof ngDevMode === "undefined" || ngDevMode) && matched !== (value == this._ngSwitch)) {
-      console.warn(formatRuntimeError(2001, `As of Angular v17 the NgSwitch directive uses strict equality comparison === instead of == to match different cases. Previously the case value "${stringifyValue(value)}" matched switch expression value "${stringifyValue(this._ngSwitch)}", but this is no longer the case with the stricter equality check. Your comparison results return different results using === vs. == and you should adjust your ngSwitch expression and / or values to conform with the strict equality requirements.`));
-    }
+    const matched = value === this._ngSwitch;
     this._lastCasesMatched ||= matched;
     this._lastCaseCheckIndex++;
     if (this._lastCaseCheckIndex === this._caseCount) {
@@ -2720,9 +2715,6 @@ var NgSwitchDefault = _NgSwitchDefault;
 })();
 function throwNgSwitchProviderNotFoundError(attrName, directiveName) {
   throw new RuntimeError(2e3, `An element with the "${attrName}" attribute (matching the "${directiveName}" directive) must be located inside an element with the "ngSwitch" attribute (matching "NgSwitch" directive)`);
-}
-function stringifyValue(value) {
-  return typeof value === "string" ? `'${value}'` : String(value);
 }
 var _NgPlural = class _NgPlural {
   constructor(_localization) {
@@ -3497,7 +3489,7 @@ var _PercentPipe = class _PercentPipe {
    * Default is `0`.
    * @param locale A locale code for the locale format rules to use.
    * When not supplied, uses the value of `LOCALE_ID`, which is `en-US` by default.
-   * See [Setting your app locale](guide/i18n-common-locale-id).
+   * See [Setting your app locale](guide/i18n/locale-id).
    */
   transform(value, digitsInfo, locale) {
     if (!isValue(value))
@@ -3572,7 +3564,7 @@ var _CurrencyPipe = class _CurrencyPipe {
    * For example, the Canadian dollar has 2 digits, whereas the Chilean peso has none.
    * @param locale A locale code for the locale format rules to use.
    * When not supplied, uses the value of `LOCALE_ID`, which is `en-US` by default.
-   * See [Setting your app locale](guide/i18n-common-locale-id).
+   * See [Setting your app locale](guide/i18n/locale-id).
    */
   transform(value, currencyCode = this._defaultCurrencyCode, display = "symbol", digitsInfo, locale) {
     if (!isValue(value))
@@ -3700,21 +3692,13 @@ var CommonModule = _CommonModule;
 })();
 var PLATFORM_BROWSER_ID = "browser";
 var PLATFORM_SERVER_ID = "server";
-var PLATFORM_WORKER_APP_ID = "browserWorkerApp";
-var PLATFORM_WORKER_UI_ID = "browserWorkerUi";
 function isPlatformBrowser(platformId) {
   return platformId === PLATFORM_BROWSER_ID;
 }
 function isPlatformServer(platformId) {
   return platformId === PLATFORM_SERVER_ID;
 }
-function isPlatformWorkerApp(platformId) {
-  return platformId === PLATFORM_WORKER_APP_ID;
-}
-function isPlatformWorkerUi(platformId) {
-  return platformId === PLATFORM_WORKER_UI_ID;
-}
-var VERSION = new Version("17.3.11");
+var VERSION = new Version("18.0.6");
 var _ViewportScroller = class _ViewportScroller {
 };
 _ViewportScroller.ɵprov = ɵɵdefineInjectable({
@@ -4562,17 +4546,17 @@ _NgOptimizedImage.ɵdir = ɵɵdefineDirective({
     }
   },
   inputs: {
-    ngSrc: [InputFlags.HasDecoratorInputTransform, "ngSrc", "ngSrc", unwrapSafeUrl],
+    ngSrc: [2, "ngSrc", "ngSrc", unwrapSafeUrl],
     ngSrcset: "ngSrcset",
     sizes: "sizes",
-    width: [InputFlags.HasDecoratorInputTransform, "width", "width", numberAttribute],
-    height: [InputFlags.HasDecoratorInputTransform, "height", "height", numberAttribute],
+    width: [2, "width", "width", numberAttribute],
+    height: [2, "height", "height", numberAttribute],
     loading: "loading",
-    priority: [InputFlags.HasDecoratorInputTransform, "priority", "priority", booleanAttribute],
+    priority: [2, "priority", "priority", booleanAttribute],
     loaderParams: "loaderParams",
-    disableOptimizedSrcset: [InputFlags.HasDecoratorInputTransform, "disableOptimizedSrcset", "disableOptimizedSrcset", booleanAttribute],
-    fill: [InputFlags.HasDecoratorInputTransform, "fill", "fill", booleanAttribute],
-    placeholder: [InputFlags.HasDecoratorInputTransform, "placeholder", "placeholder", booleanOrDataUrlAttribute],
+    disableOptimizedSrcset: [2, "disableOptimizedSrcset", "disableOptimizedSrcset", booleanAttribute],
+    fill: [2, "fill", "fill", booleanAttribute],
+    placeholder: [2, "placeholder", "placeholder", booleanOrDataUrlAttribute],
     placeholderConfig: "placeholderConfig",
     src: "src",
     srcset: "srcset"
@@ -5001,12 +4985,8 @@ export {
   CommonModule,
   PLATFORM_BROWSER_ID,
   PLATFORM_SERVER_ID,
-  PLATFORM_WORKER_APP_ID,
-  PLATFORM_WORKER_UI_ID,
   isPlatformBrowser,
   isPlatformServer,
-  isPlatformWorkerApp,
-  isPlatformWorkerUi,
   VERSION,
   ViewportScroller,
   NullViewportScroller,
@@ -5024,9 +5004,9 @@ export {
 
 @angular/common/fesm2022/common.mjs:
   (**
-   * @license Angular v17.3.11
+   * @license Angular v18.0.6
    * (c) 2010-2024 Google LLC. https://angular.io/
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-VGC5YQ7Y.js.map
+//# sourceMappingURL=chunk-6J5OJ5M4.js.map
