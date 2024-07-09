@@ -1,2 +1,19 @@
-<p>Writable: {{ wrSignal() }}</p>
+<form (submit)="updateSignal()">
+    <p>Value A: <input [(ngModel)]="valueA" name="inputValueA" placeholder="Writable signal value A"/></p>
+    <p>Value B: <input [(ngModel)]="valueB" name="inputValueB" placeholder="Writable signal value B"/></p>
+    <button (click)="updateSignal()">OK</button>
+</form>
+
+<p>Writable A: {{ wrSignalA() }}</p>
+<p>Writable B: {{ wrSignalB() }}</p>
 <p>Computed: {{ cmSignal() }}</p>
+
+<p>
+@if (cmSignal() > 100) {
+    {{cmSignal()}} is greater than 100
+  } @else if (cmSignal() < 100) {
+    {{cmSignal()}} is less than 100
+  } @else {
+    {{cmSignal()}} is equal to 100
+  }
+</p>
