@@ -1,10 +1,11 @@
 import { Component, Signal, WritableSignal, computed, effect, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { SignalsTestChildComponent } from "../signals-test-child/signals-test-child.component";
 
 @Component({
   selector: 'app-signals-test',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SignalsTestChildComponent],
   templateUrl: './signals-test.component.html',
   styleUrl: './signals-test.component.css'
 })
